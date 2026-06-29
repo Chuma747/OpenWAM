@@ -29,7 +29,7 @@
 
 #include "TOpenWAM.h"
 #ifdef _WIN32
-#include <Windows.h>
+#include <windows.h>
 #endif
 #include "Version.h"
 
