@@ -361,14 +361,15 @@ void TOutputResults::HeaderAverageResults(stEspecies *SpeciesName, TCalculoExter
 	}
 }
 
-void TOutputResults::OutputAverageResults(double AcumulatedTime, TCalculoExtern* EXTERN, bool ThereIsDLL) {
+void TOutputResults::OutputAverageResults(double AcumulatedTime, int Cycle, TCalculoExtern* EXTERN, bool ThereIsDLL) {
 
 	float pasafloat;
 
 	pasafloat = (float)(AcumulatedTime);
 
 	FAvgOutput << std::endl;
-	FAvgOutput << AvgEngine->getCiclo();
+	// The cycle number is needed even when averaged engine results are disabled.
+	FAvgOutput << Cycle;
 	FAvgOutput << "\t";
 	FAvgOutput << pasafloat;
 

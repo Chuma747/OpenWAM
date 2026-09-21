@@ -3793,7 +3793,7 @@ void TOpenWAM::ManageOutput() {
 		Output->PrintSpaceTimeResults(EngineBlock, Theta, Run.CycleDuration, Engine, SpeciesNumber);
 
 		if(CrankAngle - Run.AngleStep <= 0. && Theta >= 750.) {
-			Output->OutputAverageResults(AcumulatedTime, EXTERN, ThereIsDLL);
+			Output->OutputAverageResults(AcumulatedTime, Engine[0]->getCiclo(), EXTERN, ThereIsDLL);
 
 			Output->CopyAverageResultsToFile(1);
 

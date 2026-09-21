@@ -177,7 +177,7 @@ class TOutputResults {
 
 	void HeaderAverageResults(stEspecies *SpeciesName, TCalculoExtern* EXTERN, bool ThereIsDLL);
 
-	void OutputAverageResults(double AcumulatedTime, TCalculoExtern* EXTERN, bool ThereIsDLL);
+	void OutputAverageResults(double AcumulatedTime, int Cycle, TCalculoExtern* EXTERN, bool ThereIsDLL);
 
 	void CopyAverageResultsToFile(int mode);
 
