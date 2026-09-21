@@ -38,6 +38,8 @@
 
 TBloqueMotor::TBloqueMotor(double AmbientPressure, double AmbientTemperature, nmTipoCalculoEspecies SpeciesModel,
 						   int numeroespecies, nmCalculoGamma GammaCalculation, bool ThereIsEGR) {
+	// Average-output configuration is optional; its flags and values must still be initialized.
+	FResMediosMotor = stResMediosMotor();
 	FMasaFuel = 0.;
 	FDosadoInicial = 0.;
 	FCiclo = 0;
