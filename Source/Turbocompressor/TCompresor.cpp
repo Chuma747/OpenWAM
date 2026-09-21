@@ -57,6 +57,8 @@ TCompresor::TCompresor(int i, nmTipoCalculoEspecies SpeciesModel, int numeroespe
 	FInstant.GraficaRegimenCorregido = false;
 	FInstant.GraficaGamma = false;
 	FTiempo0 = 0.;
+	// The plenum stability check reads the flow before the first compressor update.
+	FGastoCompresor = 0.;
 	Mapa = NULL;
 	Mapa2T = NULL;
 	FBombeo = true;
