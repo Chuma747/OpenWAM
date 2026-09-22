@@ -53,6 +53,7 @@ TEjeTurbogrupo::TEjeTurbogrupo(int i, int ncilin) {
 
 	FResMediosEje.Regimen = false;
 	FNumCiclo = 0;
+	FAngle0 = 0.;
 
 	FRPMControlled = false;
 	FTime = 0;
@@ -335,39 +336,8 @@ void TEjeTurbogrupo::CalculaEjesTurbogrupo(double Theta, nmTipoModelado Simulati
 			FTurbina[j]->PutRegimen(FRegimenEje);
 		}
 
-		// Acumulacion de valores medios.
-
-		if(FResMediosEje.Regimen) {
-			FResMediosEje.RegimenSUM += FRegimenEje * DeltaTime;
-		}
-		FResMediosEje.TiempoSUM += DeltaTime;
-
-		// printf("%lf \n",FRegimenEje);
-
-		// Salida de resultados por pantalla.
-		// printf("%lf %lf\n",CrankAngle,Theta);
-
-		if(CrankAngle - FAngle0 <= 0. && Theta >= 750.) {
-			FNumCiclo++;
-			printf("\n");
-			printf("*****************************************************\n");
-			printf("***TURBOCHARGER AVERAGE VALUES %3d **CYCLE N. %3d ***\n", FNumeroEje, FNumCiclo);
-			printf("*****************************************************\n");
-			printf("\n");
-			for(int j = 0; j < FNumTurbinasAcopladas; ++j) {
-				FTurbina[j]->ImprimeResultadosMediosPantalla();
-			}
-			for(int j = 0; j < FNumCompresoresAcoplados; ++j) {
-				FCompresor[j]->CalculaMedias();
-				printf("COMPRESSOR WORK %d       = %6.3lf Julios \n", FNumeroCompresor[j], FCompresor[j]->getTrabCiclo());
-				printf("COMPRESSOR EFFICIENCY %d = %6.3lf \n", FNumeroCompresor[j], FCompresor[j]->getRendMed());
-				printf("COMPRESSOR MASS FLOW %d  = %6.3lf g/s\n", FNumeroCompresor[j], FCompresor[j]->getGastoMed() * 1000);
-				printf("COMPRESSOR RATIO %d      = %6.3lf \n", FNumeroCompresor[j], FCompresor[j]->getRCMed());
-			}
-			printf("TURBOCHARGER SPEED      = %6.3lf r.p.m.\n", FResMediosEje.RegimenSUM / FResMediosEje.TiempoSUM);
-			printf("*****************************************************\n\n");
-		}
-		FAngle0 = CrankAngle;
+		// Accumulate once per solver step, independently of optional DAT columns.
+		AcumulaResultadosMediosEje(Time);
 
 	} catch(exception & N) {
 		std::cout << "ERROR: TEjeTurbogrupo::CalculaEjesTurbogrupo in the boundary condition: " << FNumeroEje << std::endl;
@@ -452,6 +422,7 @@ void TEjeTurbogrupo::ImprimeResultadosMedEje(stringstream & medoutput) {
 void TEjeTurbogrupo::IniciaMedias() {
 	try {
 
+		FResMediosEje.RegimenMED = 0.;
 		FResMediosEje.RegimenSUM = 0.;
 		FResMediosEje.TiempoSUM = 0.;
 		FResMediosEje.Tiempo0 = 0.;
@@ -467,19 +438,22 @@ void TEjeTurbogrupo::IniciaMedias() {
 // ---------------------------------------------------------------------------
 
 void TEjeTurbogrupo::ResultadosMediosEje() {
-	try {
+	if(FResMediosEje.TiempoSUM <= 0.) return;
+	FResMediosEje.RegimenMED = FResMediosEje.RegimenSUM / FResMediosEje.TiempoSUM;
+	FResMediosEje.RegimenSUM = 0.;
+	FResMediosEje.TiempoSUM = 0.;
+}
 
-		if(FResMediosEje.Regimen) {
-			FResMediosEje.RegimenMED = FResMediosEje.RegimenSUM / FResMediosEje.TiempoSUM;
-			FResMediosEje.RegimenSUM = 0.;
-		}
-		FResMediosEje.TiempoSUM = 0;
-
-	} catch(exception & N) {
-		std::cout << "ERROR: TEjeTurbogrupo::ResultadosMediosEje en el eje: " << FNumeroEje << std::endl;
-		// std::cout << "Tipo de error: " << N.what() << std::endl;
-		throw Exception(N.what());
+void TEjeTurbogrupo::PrintAverageResults() {
+	printf("\n*** TURBOCHARGER %d AVERAGE VALUES ***\n", FNumeroEje);
+	for(int i = 0; i < FNumTurbinasAcopladas; ++i) FTurbina[i]->ImprimeResultadosMediosPantalla();
+	for(int i = 0; i < FNumCompresoresAcoplados; ++i) {
+		printf("COMPRESSOR WORK %d = %.3f J\n", FNumeroCompresor[i], FCompresor[i]->getTrabCiclo());
+		printf("COMPRESSOR EFFICIENCY %d = %.3f\n", FNumeroCompresor[i], FCompresor[i]->getRendMed());
+		printf("COMPRESSOR MASS FLOW %d = %.3f g/s\n", FNumeroCompresor[i], FCompresor[i]->getGastoMed() * 1000.);
+		printf("COMPRESSOR RATIO %d = %.3f\n", FNumeroCompresor[i], FCompresor[i]->getRCMed());
 	}
+	printf("TURBOCHARGER SPEED = %.3f r.p.m.\n", FResMediosEje.RegimenMED);
 }
 
 // ---------------------------------------------------------------------------
@@ -491,11 +465,9 @@ void TEjeTurbogrupo::AcumulaResultadosMediosEje(double Actual) {
 		 llevar a cabo la salida de resultados medios por pantalla. */
 		double Delta = Actual - FResMediosEje.Tiempo0;
 
-		if(FResMediosEje.Regimen) {
-			FResMediosEje.RegimenSUM += FRegimenEje * Delta;
-		}
+		FResMediosEje.RegimenSUM += FRegimenEje * Delta;
 		FResMediosEje.TiempoSUM += Delta;
-		FResMediosEje.Tiempo0 = Delta;
+		FResMediosEje.Tiempo0 = Actual;
 
 	} catch(exception & N) {
 		std::cout << "ERROR: TEjeTurbogrupo::AcumulaResultadosMediosEje en el eje: " << FNumeroEje << std::endl;

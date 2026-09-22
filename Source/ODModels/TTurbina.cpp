@@ -61,6 +61,7 @@ TTurbina::TTurbina(int i, nmTipoDeposito TipoDeposito, int nentradas, nmTipoCalc
 	FRendTurbina = new double[nentradas];
 	FDeltaPaso = 0.;
 	FTrabajoReal = 0.;
+	FTrabajoTotal = 0.;
 	FTrabajoRealPaso = 0.;
 	FRendInstantaneo = 0.;
 	FTrabajoIsenInstTotal = 0.;
@@ -70,7 +71,7 @@ TTurbina::TTurbina(int i, nmTipoDeposito TipoDeposito, int nentradas, nmTipoCalc
 	for(int j = 0; j < nentradas; j++) {
 		FRelacionCinAcum[j] = 0.;
 	}
-	FPonderacionRelacionCinematica = new double[nentradas];
+	FPonderacionRelacionCinematica = new double[nentradas]();
 
 	FCCSalida = NULL;
 	FCCSalida = NULL;
@@ -577,3 +578,13 @@ void TTurbina::AsignAcousticElements(TTubo **Pipe) {
 }
 
 #pragma package(smart_init)
+
+void TTurbina::FinalizeCycle() {
+	if(FResMediosTurbina.TiempoSUM <= 0.) return;
+	FCycleWork = FTrabajoReal;
+	FCycleEfficiency = FTrabajoTotal != 0. ? FTrabajoReal / FTrabajoTotal : 0.;
+	FCycleBlade = FTrabajoReal != 0. ? (FNumeroEntradas == 1 ? FRelacionCinAcum[0] : FRelacionCinGlobalAcum) / FTrabajoReal : 0.;
+	CalculaResultadosMediosTurb();
+	FResMediosTurbina.TrabajoMED = FCycleWork;
+	FResMediosTurbina.RendimientoMED = FCycleEfficiency;
+}

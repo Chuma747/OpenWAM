@@ -352,7 +352,7 @@ void TOpenWAM::CleanLabelsX() {
 
 	//strcpy(fileinput.c_str(), "tmp.wam");
 
-	fileinput = "tmp.wam";
+	fileinput = OutputDirectory.empty() ? "tmp.wam" : OutputDirectory + "/tmp.wam";
 
 	fetmp = fopen(fileinput.c_str(), "w");
 
@@ -1747,6 +1747,14 @@ void TOpenWAM::ReadControllers() {
 }
 
 void TOpenWAM::ReadOutput(char* FileName) {
+	std::string resultName = FileName;
+	if(!OutputDirectory.empty()) {
+		size_t slash = resultName.find_last_of("/\\");
+		resultName = OutputDirectory + "/" + resultName.substr(slash == std::string::npos ? 0 : slash + 1);
+	}
+	std::vector<char> resultPath(resultName.begin(), resultName.end());
+	resultPath.push_back(0);
+
 
 	fpos_t filepos;
 	fgetpos(FileInput, &filepos);
@@ -1758,20 +1766,20 @@ void TOpenWAM::ReadOutput(char* FileName) {
 #ifdef ParticulateFilter
 	Output->ReadAverageResults(fileinput.c_str(), filepos, Pipe, EngineBlock, Engine,
 							   Plenum, Axis, Compressor, Turbine, BC, DPF, VolumetricCompressor,
-							   Venturi, Sensor, Controller, SimulationDuration, FileName);
+							   Venturi, Sensor, Controller, SimulationDuration, resultPath.data());
 
 	Output->ReadInstantaneousResults(fileinput.c_str(), filepos, Engine, Plenum, Pipe,
 									 Venturi, BC, DPF, Axis, Compressor, Turbine, VolumetricCompressor,
 									 BCWasteGate, NumberOfWasteGates, BCReedValve, NumberOfReedValves,
-									 Sensor, Controller, FileName);
+									 Sensor, Controller, resultPath.data());
 #else
 	Output->ReadAverageResults(fileinput.c_str(), filepos, Pipe, EngineBlock, Engine, Plenum, Axis, Compressor, Turbine, BC,
 							   NULL, VolumetricCompressor, Venturi, Sensor, Controller,
-							   SimulationDuration, FileName);
+							   SimulationDuration, resultPath.data());
 
 	Output->ReadInstantaneousResults(fileinput.c_str(), filepos, Engine, Plenum, Pipe, Venturi, BC, NULL, Axis, Compressor,
 									 Turbine, VolumetricCompressor, BCWasteGate, NumberOfWasteGates, BCReedValve,
-									 NumberOfReedValves, Sensor, Controller, FileName);
+									 NumberOfReedValves, Sensor, Controller, resultPath.data());
 #endif
 
 	Output->ReadSpaceTimeResults(fileinput.c_str(), filepos, Pipe, Engine, Plenum);
@@ -3635,7 +3643,6 @@ void TOpenWAM::SolveRoadLoadModel() {
 void TOpenWAM::UpdateTurbocharger() {
 	for(int i = 0; i < NumberOfAxis; i++) {
 		Axis[i]->CalculaEjesTurbogrupo(Theta, SimulationType, AcumulatedTime, CrankAngle);
-		Axis[i]->AcumulaResultadosMediosEje(AcumulatedTime);
 	}
 }
 
@@ -3793,6 +3800,14 @@ void TOpenWAM::ManageOutput() {
 		Output->PrintSpaceTimeResults(EngineBlock, Theta, Run.CycleDuration, Engine, SpeciesNumber);
 
 		if(CrankAngle - Run.AngleStep <= 0. && Theta >= 750.) {
+			Engine[0]->ResultadosMediosBloqueMotor();
+			for(int i = 0; i < NumberOfCompressors; ++i) Compressor[i]->CalculaMedias();
+			for(int i = 0; i < NumberOfTurbines; ++i) Turbine[i]->FinalizeCycle();
+			for(int i = 0; i < NumberOfAxis; ++i) {
+				Axis[i]->ResultadosMediosEje();
+				Axis[i]->PrintAverageResults();
+			}
+			PublishLiveCycle();
 			Output->OutputAverageResults(AcumulatedTime, Engine[0]->getCiclo(), EXTERN, ThereIsDLL);
 
 			Output->CopyAverageResultsToFile(1);

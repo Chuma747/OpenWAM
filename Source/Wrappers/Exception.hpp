@@ -43,6 +43,6 @@ class Exception: public exception {
 	Exception();
 	Exception(const string& __arg);
 	virtual ~Exception();
-	virtual const char* what();
+	const char* what() const noexcept override;
 };
 #endif

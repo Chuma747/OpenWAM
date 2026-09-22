@@ -125,6 +125,7 @@
 
 // OUTPUT RESULTS
 #include "TOutputResults.h"
+#include "LiveResults.h"
 #define completo 1
 
 /* ! \def gestorcom
@@ -147,6 +148,9 @@
 
 class TOpenWAM {
   private:
+	LiveResults Live;
+	std::string OutputDirectory;
+	void PublishLiveCycle();
 
 #ifdef gestorcom
 
@@ -428,6 +432,10 @@ class TOpenWAM {
 	void Actuadores();
 
   public:
+	void SetOutputDirectory(const std::string& directory) { OutputDirectory = directory; }
+	void StartLiveResults(const std::string& path, const std::string& input);
+	void PublishLiveStep();
+	void FinishLiveResults(const std::string& status, const std::string& message = "") { Live.finish(status, message); }
 
 	TOpenWAM();
 

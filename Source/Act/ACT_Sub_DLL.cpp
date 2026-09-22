@@ -1,3 +1,4 @@
+#include "RunPaths.h"
 #include"ACT_Sub_DLL.h"
 #include "Constantes.h"
 
@@ -2547,11 +2548,11 @@ void ACT(double *engine_parameters, double *engine_model_constants, double *test
 	Ang_Grab = -180.0; // angulo en el que se grabaran los datos
 
 	if(RadCalc == 1 && Ang_Grab > -179.) {
-		foculto = fopen("elementos.csv", "w");
+		foculto = fopen(runOutputPath("elementos.csv").c_str(), "w");
 		if(foculto == NULL)
 			exit(-1);
 
-		foculto2 = fopen("data_eje.csv", "w");
+		foculto2 = fopen(runOutputPath("data_eje.csv").c_str(), "w");
 		if(foculto2 == NULL)
 			exit(-1);
 	}
@@ -2966,7 +2967,7 @@ void ACT(double *engine_parameters, double *engine_model_constants, double *test
 	// Abro el fichero interno
 	FILE *finterno;
 	if(RadCalc == 1 && Ang_Grab > -179.) {
-		finterno = fopen("paquete.csv", "w");
+		finterno = fopen(runOutputPath("paquete.csv").c_str(), "w");
 		if(finterno == NULL) {
 			printf("Error abriendo fichero interno.");
 			// getch();

@@ -31,6 +31,7 @@ add_executable(OpenWAM
   OpenWAM.cpp
   TOpenWAM.cpp
   TTimeControl.cpp
+  LiveResults.cpp
   OpenWAM.rc
 )
 target_link_libraries(

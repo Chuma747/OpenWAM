@@ -232,6 +232,8 @@ class TBloqueMotor {
 
 	double FRegimen;
 
+	const stResMediosMotor& AverageResults() const { return FResMediosMotor; }
+
 	double getRegimen() {
 		return FRegimen;
 	}

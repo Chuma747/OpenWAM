@@ -1,3 +1,4 @@
+#include "RunPaths.h"
 /*--------------------------------------------------------------------------------*\
 ==========================|
  \\   /\ /\   // O pen     | OpenWAM: The Open Source 1D Gas-Dynamic Code
@@ -952,7 +953,7 @@ double TMapaComp::BuscaRegimen(double RC, double Massflow, double AmbientTempera
 void TMapaComp::ImprimeMapa() {
 	std::cout << "Printing compresso map .";
 	FILE *fich;
-	fich = fopen("MapaSimple.txt", "w");
+	fich = fopen(runOutputPath("MapaSimple.txt").c_str(), "w");
 	double inc = 0.;
 	double *massflow;
 	double **rc;

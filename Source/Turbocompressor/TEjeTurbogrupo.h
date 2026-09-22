@@ -120,6 +120,9 @@ class TEjeTurbogrupo {
 
   public:
 
+	void PrintAverageResults();
+	double AverageSpeed() const { return FResMediosEje.RegimenMED; }
+
 	double getRegimen() {
 		return FRegimenEje;
 	}

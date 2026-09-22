@@ -1,3 +1,4 @@
+#include "RunPaths.h"
 /*--------------------------------------------------------------------------------*\
 ==========================|
  \\   /\ /\   // O pen     | OpenWAM: The Open Source 1D Gas-Dynamic Code
@@ -1354,8 +1355,8 @@ void TMapaComp2Tub::ImprimeMapa() {
 	std::cout << "Printing compressor map .";
 	FILE *fich;
 	FILE *fichrd;
-	fich = fopen("MapaInterp.txt", "w");
-	fichrd = fopen("MapaRend.txt", "w");
+	fich = fopen(runOutputPath("MapaInterp.txt").c_str(), "w");
+	fichrd = fopen(runOutputPath("MapaRend.txt").c_str(), "w");
 	double inc = 0.;
 	double *massflow;
 	double **rc;
@@ -1434,7 +1435,7 @@ void TMapaComp2Tub::ImprimeMapa() {
 	fclose(fichrd);
 
 	FILE *fich2;
-	fich2 = fopen("MapaReal.txt", "w");
+	fich2 = fopen(runOutputPath("MapaReal.txt").c_str(), "w");
 
 	for(int j = 0; j < FNumPuntosGastoNuevo; ++j) {
 		fprintf(fich2, "%lf\t", FGastoMin + j * FIncGasto);
@@ -1658,7 +1659,7 @@ void TMapaComp2Tub::WriteMapForWAM() {
 		double gast = 0.;
 
 		FILE *fich2;
-		fich2 = fopen("MapaWAM.cmp", "w");
+		fich2 = fopen(runOutputPath("MapaWAM.cmp").c_str(), "w");
 
 		fprintf(fich2, "%lf %lf ", FPresionRef, FTempRef);
 		fprintf(fich2, "%lf %lf %lf ", FRegMin, FRegMax, FIncReg);

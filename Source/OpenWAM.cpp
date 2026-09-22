@@ -39,64 +39,104 @@
 
 #pragma argsused
 
-TOpenWAM* Aplication = NULL;
+
+#include <cerrno>
+#include "RunPaths.h"
+#include <sys/stat.h>
+#ifdef _WIN32
+#include <direct.h>
+#else
+#include <unistd.h>
+#endif
+
+static std::string absolutePath(const std::string& path) {
+#ifdef _WIN32
+    char buffer[4096];
+    if(!_fullpath(buffer, path.c_str(), sizeof(buffer))) throw std::runtime_error("Invalid path: " + path);
+    return buffer;
+#else
+    if(!path.empty() && path[0] == '/') return path;
+    char buffer[4096];
+    if(!getcwd(buffer, sizeof(buffer))) throw std::runtime_error("Cannot determine working directory");
+    return std::string(buffer) + "/" + path;
+#endif
+}
+
+static void makeDirectory(const std::string& path) {
+    for(size_t i = 1; i <= path.size(); ++i) {
+        if(i != path.size() && path[i] != '/') continue;
+        std::string part = path.substr(0, i);
+#ifdef _WIN32
+        int result = _mkdir(part.c_str());
+#else
+        int result = mkdir(part.c_str(), 0775);
+#endif
+        if(result != 0 && errno != EEXIST) throw std::runtime_error("Cannot create output directory: " + part);
+    }
+}
 
 int main(int argc, char *argv[]) {
-
-	init_labels();
-
-	Aplication = new TOpenWAM();
-
-	Aplication->ReadInputData(argv[1]);
-
-	Aplication->ConnectFlowElements();
-
-	Aplication->ConnectControlElements();
-
-	Aplication->InitializeParameters();
-
-	Aplication->InitializeOutput();
-
-	Aplication->ProgressBegin();
-
-	if(Aplication->IsIndependent()) {
-
-		do {
-
-			Aplication->Progress();
-
-			Aplication->DetermineTimeStepIndependent();
-
-			Aplication->NewEngineCycle();
-
-			Aplication->CalculateFlowIndependent();
-
-			Aplication->ManageOutput();
-
-		} while(!Aplication->CalculationEnd());
-	} else {
-		do {
-
-			Aplication->Progress();
-
-			Aplication->DetermineTimeStepCommon();
-
-			Aplication->NewEngineCycle();
-
-			Aplication->CalculateFlowCommon();
-
-			Aplication->ManageOutput();
-
-		} while(!Aplication->CalculationEnd());
-	}
-
-	Aplication->GeneralOutput();
-
-	Aplication->ProgressEnd();
-
-	delete Aplication;
-
-	return 0;
-
+    std::string input, output, stream;
+    try {
+        for(int i = 1; i < argc; ++i) {
+            std::string arg = argv[i];
+            if(arg == "--help" || arg == "-h") {
+                std::cout << "Usage: OpenWAM case.WAM [--output-dir DIR] [--results-stream FILE]\n";
+                return 0;
+            }
+            if(arg == "--output-dir" || arg == "--results-stream") {
+                if(++i == argc) throw std::runtime_error("Missing value for " + arg);
+                (arg == "--output-dir" ? output : stream) = absolutePath(argv[i]);
+            } else if(arg.compare(0, 2, "--") == 0 || !input.empty()) {
+                throw std::runtime_error("Unexpected argument: " + arg);
+            } else input = absolutePath(arg);
+        }
+        if(input.empty()) throw std::runtime_error("Usage: OpenWAM case.WAM [--output-dir DIR] [--results-stream FILE]");
+        if(!output.empty()) makeDirectory(output);
+        runOutputDirectory() = output;
+        if(!output.empty()) {
+            // Resolve referenced resources against the input, while isolating generated files.
+            const std::string directory = input.substr(0, input.find_last_of("/\\"));
+#ifdef _WIN32
+            if(_chdir(directory.c_str()) != 0)
+#else
+            if(chdir(directory.c_str()) != 0)
+#endif
+                throw std::runtime_error("Cannot enter input directory: " + directory);
+        }
+        init_labels();
+        TOpenWAM application;
+        application.SetOutputDirectory(output);
+        try {
+            // Start with a run record, including during input parsing failures.
+            application.StartLiveResults(stream, input);
+            application.ReadInputData(&input[0]);
+            application.ConnectFlowElements();
+            application.ConnectControlElements();
+            application.InitializeParameters();
+            application.InitializeOutput();
+            application.ProgressBegin();
+            application.PublishLiveStep();
+            do {
+                application.Progress();
+                if(application.IsIndependent()) application.DetermineTimeStepIndependent();
+                else application.DetermineTimeStepCommon();
+                application.NewEngineCycle();
+                if(application.IsIndependent()) application.CalculateFlowIndependent();
+                else application.CalculateFlowCommon();
+                application.ManageOutput();
+                application.PublishLiveStep();
+            } while(!application.CalculationEnd());
+            application.GeneralOutput();
+            application.ProgressEnd();
+            application.FinishLiveResults("completed");
+        } catch(const std::exception& error) {
+            application.FinishLiveResults("failed", error.what());
+            throw;
+        }
+        return 0;
+    } catch(const std::exception& error) {
+        std::cerr << "ERROR: " << error.what() << std::endl;
+        return 1;
+    }
 }
-// ---------------------------------------------------------------------------

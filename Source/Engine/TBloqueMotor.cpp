@@ -40,6 +40,11 @@ TBloqueMotor::TBloqueMotor(double AmbientPressure, double AmbientTemperature, nm
 						   int numeroespecies, nmCalculoGamma GammaCalculation, bool ThereIsEGR) {
 	// Average-output configuration is optional; its flags and values must still be initialized.
 	FResMediosMotor = stResMediosMotor();
+	FTime = 0.;
+	FPMPMMotor = 0.;
+	FParPerdidasMecanicas = 0.;
+	FParResistente = 0.;
+	FVelocidadVehiculo = 0.;
 	FMasaFuel = 0.;
 	FDosadoInicial = 0.;
 	FCiclo = 0;
@@ -274,6 +279,8 @@ void TBloqueMotor::LeeMotor(const char *FileWAM, fpos_t &filepos, nmTipoModelado
 		// --------------------
 
 		fscanf(fich, "%lf %lf %lf %lf ", &FPerMec.Coef0, &FPerMec.Coef1, &FPerMec.Coef2, &FPerMec.Coef3);
+		// Before the first cycle, use the speed-dependent friction terms (IMEP is not available yet).
+		FPMPMMotor = FPerMec.Coef0 + FPerMec.Coef1 * FRegimen / 60. - FPerMec.Coef2 * FRegimen * FRegimen / 3600.;
 
 		// --------------------
 		// MODELO DE VEHdegCULO
@@ -955,34 +962,34 @@ void TBloqueMotor::ImprimeResultadosMediosBloqueMotor(stringstream& medoutput) {
 // ---------------------------------------------------------------------------
 
 void TBloqueMotor::ResultadosMediosBloqueMotor() {
+	if(FResMediosMotor.TiempoSUM <= 0.) return;
 	try {
 		double DensidadAtm = 0.;
 		double MasaAtrapadaSUM = 0.;
 		double FraccionAireFrescoSUM = 0., AFRSUM = 0.;
 		double swirltotal = 0.;
 
-		if(FResMediosMotor.RegimenGiro || FResMediosMotor.Potencia || FResMediosMotor.RendimientoVolumetricoAtm
-		   || FResMediosMotor.RendimientoVolumetrico) {
+		{ // Core engine result, independent of output selection.
 			FResMediosMotor.RegimenGiroMED = FResMediosMotor.RegimenGiroSUM / FResMediosMotor.TiempoSUM;
 			FResMediosMotor.RegimenGiroSUM = 0.;
 		}
-		if(FResMediosMotor.ParNeto || FResMediosMotor.PMN) {
+		{ // Core engine result, independent of output selection.
 			FResMediosMotor.ParNetoMED = FResMediosMotor.ParNetoSUM / FResMediosMotor.TiempoSUM;
 			FResMediosMotor.ParNetoSUM = 0.;
 		}
-		if(FResMediosMotor.PMN) {
+		{ // Core engine result, independent of output selection.
 			FResMediosMotor.PMNMED = FResMediosMotor.ParNetoMED * 16. / (FGeom.NCilin * pow2(FGeom.Diametro) * FGeom.Carrera) /
 									 100000.;
 		}
-		if(FResMediosMotor.ParEfectivo || FResMediosMotor.PME || FResMediosMotor.Potencia) {
+		{ // Core engine result, independent of output selection.
 			FResMediosMotor.ParEfectivoMED = FResMediosMotor.ParEfectivoSUM / FResMediosMotor.TiempoSUM;
 			FResMediosMotor.ParEfectivoSUM = 0.;
 		}
-		if(FResMediosMotor.PME) {
+		{ // Core engine result, independent of output selection.
 			FResMediosMotor.PMEMED = FResMediosMotor.ParEfectivoMED * 16. / (FGeom.NCilin * pow2(
 										 FGeom.Diametro) * FGeom.Carrera) / 100000.;
 		}
-		if(FResMediosMotor.Potencia) {
+		{ // Core engine result, independent of output selection.
 			FResMediosMotor.PotenciaMED = __units::To_kilo(FResMediosMotor.ParEfectivoMED * __cons::Pi_x_2 * __units::RPMToRPS(
 											  FResMediosMotor.RegimenGiroMED));
 		}
@@ -1112,15 +1119,14 @@ void TBloqueMotor::AcumulaResultadosMediosBloqueMotor(double TActual, int Cilind
 		double DeltaT = TActual - FResMediosMotor.Tiempo0;
 		// double DeltaAngulo=360.*FRegimen/60.*DeltaT;
 
-		if(FResMediosMotor.ParNeto || FResMediosMotor.PMN || FResMediosMotor.ParEfectivo || FResMediosMotor.PME
-		   || FResMediosMotor.Potencia) {
+		{ // Core engine result, independent of output selection.
 			for(int i = 0; i < FGeom.NCilin; i++) {
 				partotalins += FCilindro[i]->getParInstantaneo() * DeltaT;
 			}
 			FResMediosMotor.ParNetoSUM += partotalins;
 		}
 
-		if(FResMediosMotor.ParEfectivo || FResMediosMotor.PME || FResMediosMotor.Potencia) {
+		{ // Core engine result, independent of output selection.
 			FResMediosMotor.ParEfectivoSUM += partotalins - FParPerdidasMecanicas * DeltaT;
 		}
 
@@ -1142,7 +1148,7 @@ void TBloqueMotor::AcumulaResultadosMediosBloqueMotor(double TActual, int Cilind
 
 		}
 
-		if(FResMediosMotor.RendimientoVolumetrico || FResMediosMotor.Potencia || FResMediosMotor.RendimientoVolumetricoAtm) {
+		{ // Core engine result, independent of output selection.
 			FResMediosMotor.RegimenGiroSUM += FRegimen * DeltaT;
 		}
 

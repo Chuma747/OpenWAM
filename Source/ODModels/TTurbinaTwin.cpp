@@ -817,27 +817,12 @@ void TTurbinaTwin::ImprimeResultadosInstantTurb(stringstream& insoutput) {
 // ---------------------------------------------------------------------------
 
 void TTurbinaTwin::ImprimeResultadosMediosPantalla() {
-	try {
-
-		printf("TRABAJO TURBINA   %d     = %lf Julios \n", FNumeroTurbina, FTrabajoReal);
-		if(FTrabajoTotal != 0.) {
-			printf("RENDIMIENTO TURBINA   %d = %lf \n", FNumeroTurbina, FTrabajoReal / FTrabajoTotal);
-		} else {
-			printf("RENDIMIENTO TURBINA   %d = %lf \n", FNumeroTurbina, 0.);
-		}
-		if(FTrabajoReal != 0.) {
-			printf("REL.CINEM.ALABE TURB(Global) %d = %lf \n", FNumeroTurbina, FRelacionCinGlobalAcum / FTrabajoReal);
-		} else {
-			printf("REL.CINEM.ALABE TURB(Global) %d = %lf \n", FNumeroTurbina, 0.);
-		}
-
-	} catch(exception &N) {
-		std::cout << "ERROR: TTurbinaTwin::ImprimeResultadosMediosPantalla en la turbina: " << FNumeroTurbina << std::endl;
-		std::cout << "Tipo de error: " << N.what() << std::endl;
-		throw Exception(N.what());
-	}
+	printf("TURBINE WORK %d = %.3f J\n", FNumeroTurbina, CycleWork());
+	printf("TURBINE EFFICIENCY %d = %.3f\n", FNumeroTurbina, CycleEfficiency());
+	printf("BLADE SPEED RATIO TURB %d = %.3f\n", FNumeroTurbina, CycleBladeRatio());
 }
 
+// ---------------------------------------------------------------------------
 void TTurbinaTwin::UpdateProperties0DModel(double TimeCalculo) {
 
 	ActualizaPropiedades(TimeCalculo);
@@ -850,7 +835,6 @@ void TTurbinaTwin::UpdateProperties0DModel(double TimeCalculo) {
 
 }
 
-// ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 
 #pragma package(smart_init)

@@ -382,7 +382,6 @@ void TOutputResults::OutputAverageResults(double AcumulatedTime, int Cycle, TCal
 
 	// ! Average results in the engine
 	if(AvgEngine != NULL) {
-		AvgEngine->ResultadosMediosBloqueMotor();
 		AvgEngine->ImprimeResultadosMediosBloqueMotor(FAvgOutput);
 	}
 
@@ -411,7 +410,6 @@ void TOutputResults::OutputAverageResults(double AcumulatedTime, int Cycle, TCal
 
 	// ! Average results in turbocharger axis
 	for(Uint i = 0; i < AvgAxis.size(); ++i) {
-		AvgAxis[i]->ResultadosMediosEje();
 		AvgAxis[i]->ImprimeResultadosMedEje(FAvgOutput);
 	}
 
@@ -422,7 +420,6 @@ void TOutputResults::OutputAverageResults(double AcumulatedTime, int Cycle, TCal
 
 	// ! Average results in turbines.
 	for(Uint i = 0; i < AvgTurbine.size(); i++) {
-		AvgTurbine[i]->CalculaResultadosMediosTurb();
 		AvgTurbine[i]->ImprimeResultadosMedTurb(FAvgOutput);
 	}
 

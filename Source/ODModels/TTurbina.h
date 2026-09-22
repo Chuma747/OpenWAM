@@ -83,6 +83,7 @@ class TTurbina: public TDepVolCteBase {
 
 	double FTrabajoIsen;
 	double FTrabajoReal;
+	double FCycleWork = 0., FCycleEfficiency = 0., FCycleBlade = 0.;
 	double FTrabajoRealPaso;
 	double FTrabajoTotal;
 	double FTrabajoFluido;
@@ -147,6 +148,11 @@ class TTurbina: public TDepVolCteBase {
 	double CpTurbineComplete(double YO2, double YCO2, double YH2O, double Temperature);
 
   public:
+	void FinalizeCycle();
+	double CycleWork() const { return FCycleWork; }
+	double CycleEfficiency() const { return FCycleEfficiency; }
+	double CycleBladeRatio() const { return FCycleBlade; }
+
 	// ---------------------------------------------------------------------------
 	// VARIABLES PUBLICAS
 	// ---------------------------------------------------------------------------

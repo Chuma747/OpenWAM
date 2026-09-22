@@ -38,7 +38,7 @@ Exception::Exception(const string& __arg) {
 Exception::~Exception() {
 }
 
-const char* Exception::what() {
+const char* Exception::what() const noexcept {
 	return msg.c_str();
 }
 

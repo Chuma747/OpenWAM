@@ -55,6 +55,7 @@ TCilindro::TCilindro(TBloqueMotor *Engine, bool ThereIsEGR) {
 	else
 		FIntEGR = 1;
 
+	FNumVarMed = 0;
 	FResInstantCilindro.FraccionINS = NULL;
 	FResInstantCilindro.MomentoAngularEscINS = NULL;
 	FResInstantCilindro.MomentoAngularAdmINS = NULL;

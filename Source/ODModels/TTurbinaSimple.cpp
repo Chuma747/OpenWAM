@@ -390,25 +390,9 @@ void TTurbinaSimple::CalculaCondicionTurbina(double TimeCalculo) {
 // ---------------------------------------------------------------------------
 
 void TTurbinaSimple::ImprimeResultadosMediosPantalla() {
-	try {
-
-		printf("TURBINE WORK   %d        = %6.3lf Julios \n", FNumeroTurbina, FTrabajoReal);
-		if(FTrabajoTotal != 0.) {
-			printf("TURBINE EFFICIENCY   %d  = %6.3lf \n", FNumeroTurbina, FTrabajoReal / FTrabajoTotal);
-		} else {
-			printf("TURBINE EFFICIENCY   %d = %6.3lf \n", FNumeroTurbina, 0.);
-		}
-		if(FTrabajoReal != 0.) {
-			printf("BLADE SPEED RATIO TURB %d= %6.3lf \n", FNumeroTurbina, FRelacionCinAcum[0] / FTrabajoReal);
-		} else {
-			printf("BLADE SPEED RATIO TURB %d= %6.3lf \n", FNumeroTurbina, 0.);
-		}
-
-	} catch(exception & N) {
-		std::cout << "ERROR: TTurbinaSimple::ImprimeResultadosMediosPantalla en la turbina: " << FNumeroTurbina << std::endl;
-		std::cout << "Tipo de error: " << N.what() << std::endl;
-		throw Exception(N.what());
-	}
+	printf("TURBINE WORK %d = %.3f J\n", FNumeroTurbina, CycleWork());
+	printf("TURBINE EFFICIENCY %d = %.3f\n", FNumeroTurbina, CycleEfficiency());
+	printf("BLADE SPEED RATIO TURB %d = %.3f\n", FNumeroTurbina, CycleBladeRatio());
 }
 
 // ---------------------------------------------------------------------------

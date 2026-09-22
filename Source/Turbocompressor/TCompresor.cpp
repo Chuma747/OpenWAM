@@ -176,6 +176,7 @@ void TCompresor::CalculoPotenciaPaso() {
 //---------------------------------------------------------------------------
 
 void TCompresor::CalculaMedias() {
+	if(FMedias.TiempoSUM <= 0.) return;
 
 	try {
 		FMedias.RelacionCompresion = FMedias.RelacionCompresionSUM / FMedias.TiempoSUM;
