@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "openwam-viewer"
+version = "0.1.0"
+description = "Live desktop results for OpenWAM"
+requires-python = ">=3.10"
+dependencies = ["PySide6>=6.7,<7", "pyqtgraph>=0.13.7,<0.15", "numpy>=1.25,<3"]
+
+[project.scripts]
+openwam-live = "openwam_viewer.app:main"
+
+[tool.setuptools.packages.find]
+include = ["openwam_viewer*"]
